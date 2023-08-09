@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-project_name = "customer-satisfaction"
+project_name = "CustomerSatisfaction"
 
 list_of_files = [
     ".github/workflows/.gitkeep",

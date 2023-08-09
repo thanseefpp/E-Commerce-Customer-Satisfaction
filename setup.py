@@ -36,11 +36,11 @@ if __name__ == "__main__":
     requirements = findRequirements()
     REPO_NAME = "E-Commerce-Customer-Satisfaction"
     AUTHOR_USER_NAME = "thanseefpp"
-    SRC_NAME = "customer-satisfaction"
+    SRC_NAME = "CustomerSatisfaction"
     setup(
         name=SRC_NAME,
         version=getVersion(),
-        description='Uber End To End Pipeline',
+        description='E-commerce CustomerSatisfaction End To End Pipeline',
         author=AUTHOR_USER_NAME,
         author_email='thanseefpp@gmail.com',
         url=f"https://github.com/{AUTHOR_USER_NAME}/{REPO_NAME}",
