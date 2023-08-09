@@ -2,6 +2,9 @@
 
 ---
 
+## Dataset is Taken From Kaggle
+
+- [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
 
 ## 1 - Installation
 
