@@ -1,13 +1,15 @@
-from src.CustomerSatisfaction.config.exception import CustomException
-from src.CustomerSatisfaction.config.logger import logging
+import sys
+from abc import ABC, abstractmethod
+from typing import Tuple, Union
+
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from typing_extensions import Annotated
-from abc import ABC, abstractmethod
-from typing import Union,Tuple
 from zenml import step
-import pandas as pd
-import numpy as np
-import sys
+
+from src.CustomerSatisfaction.config.exception import CustomException
+from src.CustomerSatisfaction.config.logger import logging
 
 
 class DataStrategy(ABC):
@@ -18,7 +20,8 @@ class DataStrategy(ABC):
     @abstractmethod
     def handle_data(self, data: pd.DataFrame) -> Union[pd.DataFrame, pd.Series]:
         pass
-    
+
+
 class DataPreprocessStrategy(DataStrategy):
     """
     Data preprocessing strategy which preprocesses the data.
@@ -38,18 +41,22 @@ class DataPreprocessStrategy(DataStrategy):
                     "order_purchase_timestamp",
                     "customer_zip_code_prefix",
                     "order_item_id"
-                ],
-                axis=1,inplace=True,
-            )
-            data["product_weight_g"].fillna(data["product_weight_g"].median(), inplace=True)
-            data["product_length_cm"].fillna(data["product_length_cm"].median(), inplace=True)
-            data["product_height_cm"].fillna(data["product_height_cm"].median(), inplace=True)
-            data["product_width_cm"].fillna(data["product_width_cm"].median(), inplace=True)
+                ], axis=1, inplace=True)
+            data["product_weight_g"].fillna(
+                data["product_weight_g"].median(), inplace=True)
+            data["product_length_cm"].fillna(
+                data["product_length_cm"].median(), inplace=True)
+            data["product_height_cm"].fillna(
+                data["product_height_cm"].median(), inplace=True)
+            data["product_width_cm"].fillna(
+                data["product_width_cm"].median(), inplace=True)
             data["review_comment_message"].fillna("No review", inplace=True)
             return data.select_dtypes(include=[np.number])
         except Exception as e:
-            logging.error("Error occurred from handle_data method from DataPreprocessStrategy class")
-            raise CustomException(e,sys) from e
+            logging.error(
+                "Error occurred from handle_data method from DataPreprocessStrategy class")
+            raise CustomException(e, sys) from e
+
 
 class DataDivideStrategy(DataStrategy):
     """
@@ -68,8 +75,10 @@ class DataDivideStrategy(DataStrategy):
             )
             return X_train, X_test, y_train, y_test
         except Exception as e:
-            logging.error("Error occurred from handle_data method from DataDivideStrategy class")
-            raise CustomException(e,sys) from e
+            logging.error(
+                "Error occurred from handle_data method from DataDivideStrategy class")
+            raise CustomException(e, sys) from e
+
 
 class DataCleaning:
     """
@@ -88,10 +97,10 @@ class DataCleaning:
 
 @step
 def clean_data(data: pd.DataFrame) -> Tuple[
-    Annotated[pd.DataFrame, "x_train"],
-    Annotated[pd.DataFrame, "x_test"],
-    Annotated[pd.Series, "y_train"],
-    Annotated[pd.Series, "y_test"]]:
+        Annotated[pd.DataFrame, "x_train"],
+        Annotated[pd.DataFrame, "x_test"],
+        Annotated[pd.Series, "y_train"],
+        Annotated[pd.Series, "y_test"]]:
     """Data cleaning class which preprocesses the data and divides it into train and test data.
 
     Args:
@@ -106,5 +115,6 @@ def clean_data(data: pd.DataFrame) -> Tuple[
         x_train, x_test, y_train, y_test = data_cleaning.handle_data()
         return x_train, x_test, y_train, y_test
     except Exception as e:
-        logging.error("Error occurred from clean_data method from data cleaning module")
-        raise CustomException(e,sys) from e
+        logging.error(
+            "Error occurred from clean_data method from data cleaning module")
+        raise CustomException(e, sys) from e

@@ -1,12 +1,12 @@
-from src.CustomerSatisfaction.config.exception import CustomException
-from src.CustomerSatisfaction.config.logger import logging
 import os
 import sys
 from dataclasses import dataclass
+
 import pandas as pd
 from zenml import step
 
-
+from src.CustomerSatisfaction.config.exception import CustomException
+from src.CustomerSatisfaction.config.logger import logging
 
 
 @dataclass
@@ -22,7 +22,7 @@ class IngestData:
         Data ingestion class which ingests data from the source and returns a DataFrame.
     """
 
-    def __init__(self,data_path : str):
+    def __init__(self, data_path: str):
         """
         Args:
             data_path: path to the data
@@ -35,10 +35,10 @@ class IngestData:
             return pd.read_csv(self.data_path)
         except Exception as e:
             raise CustomException(e, sys) from e
-        
+
 
 @step
-def ingest_df(data_path : str) -> pd.DataFrame:
+def ingest_df(data_path: str) -> pd.DataFrame:
     """
     Args:
         data_path : Path to the data
@@ -52,7 +52,7 @@ def ingest_df(data_path : str) -> pd.DataFrame:
         os.makedirs(os.path.dirname(
             ingestion_config.raw_data_path), exist_ok=True)
         df.to_csv(ingestion_config.raw_data_path,
-                    index=False)# saving the data
+                  index=False)  # saving the data
         return df
     except Exception as e:
         raise CustomException(e, sys) from e
