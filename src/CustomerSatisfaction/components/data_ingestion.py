@@ -1,5 +1,5 @@
-from CustomerSatisfaction.config.exception import CustomException
-from CustomerSatisfaction.config.logger import logging
+from src.CustomerSatisfaction.config.exception import CustomException
+from src.CustomerSatisfaction.config.logger import logging
 import os
 import sys
 from dataclasses import dataclass
@@ -38,7 +38,7 @@ class IngestData:
         
 
 @step
-def ingest_data(data_path : str) -> pd.DataFrame:
+def ingest_df(data_path : str) -> pd.DataFrame:
     """
     Args:
         data_path : Path to the data
