@@ -38,7 +38,7 @@ class IngestData:
 
 
 @step
-def ingest_df(data_path: str) -> pd.DataFrame:
+def ingest_data(data_path: str) -> pd.DataFrame:
     """
     Args:
         data_path : Path to the data
