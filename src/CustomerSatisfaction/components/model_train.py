@@ -1,8 +1,8 @@
 import sys
-
 import pandas as pd
 from zenml import step
-
+from sklearn.base import RegressorMixin
+from src.CustomerSatisfaction.config.modelConfig import ModelNameConfig
 from src.CustomerSatisfaction.config.exception import CustomException
 from src.CustomerSatisfaction.config.logger import logging
 import xgboost as xgb
@@ -40,7 +40,8 @@ class LinearRegressionModel(Model):
             reg.fit(x_train, y_train)
             return reg
         except Exception as e:
-            logging.error("Error occurred from train method from LinearRegressionModel class")
+            error_message = "Error occurred from train method from LinearRegressionModel class"
+            logging.error(error_message)
             raise CustomException(e, sys) from e
 
 class RandomForestModel(Model):
@@ -54,7 +55,8 @@ class RandomForestModel(Model):
             reg.fit(x_train, y_train)
             return reg
         except Exception as e:
-            logging.error("Error occurred from train method from RandomForestModel class")
+            error_message = "Error occurred from train method from RandomForestModel class"
+            logging.error(error_message)
             raise CustomException(e, sys) from e
 
 class LightGBMModel(Model):
@@ -68,7 +70,8 @@ class LightGBMModel(Model):
             reg.fit(x_train, y_train)
             return reg
         except Exception as e:
-            logging.error("Error occurred from train method from LightGBMModel class")
+            error_message = "Error occurred from train method from LightGBMModel class"
+            logging.error(error_message)
             raise CustomException(e, sys) from e
     
 class XGBoostModel(Model):
@@ -82,9 +85,42 @@ class XGBoostModel(Model):
             reg.fit(x_train, y_train)
             return reg
         except Exception as e:
-            logging.error("Error occurred from train method from XGBoostModel class")
+            error_message = "Error occurred from train method in XGBoostModel class"
+            logging.error(error_message)
             raise CustomException(e, sys) from e
 
 @step
-def train_model(df: pd.DataFrame) -> None:
-    pass
+def train_model(
+    x_train: pd.DataFrame,
+    x_test: pd.DataFrame,
+    y_train: pd.Series,
+    y_test: pd.Series,
+    config: ModelNameConfig,
+) -> RegressorMixin:
+    """
+    Args:
+        x_train: pd.DataFrame
+        x_test: pd.DataFrame
+        y_train: pd.Series
+        y_test: pd.Series
+    Returns:
+        model: RegressorMixin
+    """
+    try:
+        model = None
+
+        if config.model_name == "lightgbm":
+            model = LightGBMModel()
+        elif config.model_name == "randomforest":
+            model = RandomForestModel()
+        elif config.model_name == "xgboost":
+            model = XGBoostModel()
+        elif config.model_name == "linear_regression":
+            model = LinearRegressionModel()
+        else:
+            raise ValueError("Model name not supported")
+        return model.train(x_train, y_train)
+    except Exception as e:
+        error_message = "Error occurred from train_model method"
+        logging.error(error_message)
+        raise CustomException(e, sys) from e

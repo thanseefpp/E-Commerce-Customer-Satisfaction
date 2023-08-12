@@ -6,6 +6,9 @@ from abc import ABC, abstractmethod
 from src.CustomerSatisfaction.config.exception import CustomException
 from src.CustomerSatisfaction.config.logger import logging
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.base import RegressorMixin
+from typing import Tuple
+from typing_extensions import Annotated
 
 
 class Evaluation(ABC):
@@ -35,7 +38,8 @@ class MSE(Evaluation):
             logging.info(f"The mean squared error value is: {mse}")
             return mse
         except Exception as e:
-            logging.error("Exception occurred in calculate_score method of the MSE class.")
+            error_message = "Exception occurred in calculate_score method of the MSE class"
+            logging.error(error_message)
             raise CustomException(e, sys) from e
 
 
@@ -57,7 +61,8 @@ class R2Score(Evaluation):
             logging.info(f"The r2 score value is: {r2}" )
             return r2
         except Exception as e:
-            logging.error("Exception occurred in calculate_score method of the R2Score class.")
+            error_message = "Exception occurred in calculate_score method of the R2Score class"
+            logging.error(error_message)
             raise CustomException(e, sys) from e
 
 
@@ -79,9 +84,34 @@ class RMSE(Evaluation):
             logging.info(f"The root mean squared error value is: {rmse}")
             return rmse
         except Exception as e:
-            logging.error("Exception occurred in calculate_score method of the RMSE class.")
+            error_message = "Exception occurred in calculate_score method of the RMSE class"
+            logging.error(error_message)
             raise CustomException(e, sys) from e
 
 @step
-def evaluate_model(df: pd.DataFrame) -> None:
-    pass
+def evaluation(model: RegressorMixin, 
+               x_test: pd.DataFrame, 
+               y_test: pd.Series) -> Tuple[
+                   Annotated[float, "r2_score"], 
+                   Annotated[float, "rmse"]]:
+    """
+    Args:
+        model: RegressorMixin
+        x_test: pd.DataFrame
+        y_test: pd.Series
+    Returns:
+        r2_score: float
+        rmse: float
+    """
+    try:
+        # Calculate the prediction
+        prediction = model.predict(x_test)
+
+        # Calculate the MSE, R2 score, and RMSE
+        mse = MSE().calculate_score(y_test, prediction)
+        r2_score = R2Score().calculate_score(y_test, prediction)
+        rmse = RMSE().calculate_score(y_test, prediction)
+        return r2_score, rmse
+    except Exception as e:
+        logging.error(e)
+        raise e
