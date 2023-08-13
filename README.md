@@ -31,4 +31,16 @@ zenml model-deployer register mlflow_tracker --flavor=mlflow
 zenml stack register local_with_mlflow -m default -a default -o default -d mlflow
 ```
 
-## 
+## Incase If You Get an Error like this follow the below code to upgrade mlflow
+
+attributeerror: module 'sklearn.metrics' has no attribute 'scorers'
+
+```
+pip install --upgrade mlflow
+```
+
+### 4 - Running The Application
+
+```
+streamlit run streamlit_app.py
+```
