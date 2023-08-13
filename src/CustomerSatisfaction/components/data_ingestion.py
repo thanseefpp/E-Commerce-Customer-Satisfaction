@@ -22,23 +22,19 @@ class IngestData:
         Data ingestion class which ingests data from the source and returns a DataFrame.
     """
 
-    def __init__(self, data_path: str):
-        """
-        Args:
-            data_path: path to the data
-        """
-        self.data_path = data_path
+    def __init__(self):
+        """Initialize the data ingestion class."""
+        pass
 
     def get_data(self) -> pd.DataFrame:
         try:
-            logging.info(f"Ingesting Data from {self.data_path}")
-            return pd.read_csv(self.data_path)
+            return pd.read_csv("data/olist_customers_dataset.csv")
         except Exception as e:
             raise CustomException(e, sys) from e
 
 
 @step
-def ingest_data(data_path: str) -> pd.DataFrame:
+def ingest_data() -> pd.DataFrame:
     """
     Args:
         data_path : Path to the data
@@ -47,7 +43,7 @@ def ingest_data(data_path: str) -> pd.DataFrame:
     """
     try:
         ingestion_config = DataIngestionConfig()
-        ingest_data = IngestData(data_path=data_path)
+        ingest_data = IngestData()
         df = ingest_data.get_data()
         os.makedirs(os.path.dirname(
             ingestion_config.raw_data_path), exist_ok=True)

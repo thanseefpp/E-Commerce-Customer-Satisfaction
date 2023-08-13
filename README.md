@@ -11,8 +11,24 @@
 ```
 pip install -r requirements.txt
 ```
+## 2 - Setup ZenML
 
-## 2 - Integrating MLFlow With ZenML
+```
+zenml init
+```
+
+## To See ZenML Dashboard
+```
+zenml up
+```
+visit the ULR Given in the bash
+
+## 3 - Integrating MLFlow With ZenML
 ```
 zenml integration install mlflow -y
+zenml experiment-tracker register mlflow_tracker --flavor=mlflow
+zenml model-deployer register mlflow_tracker --flavor=mlflow
+zenml stack register local_with_mlflow -m default -a default -o default -d mlflow
 ```
+
+## 
