@@ -2,6 +2,7 @@ import sys
 from abc import ABC, abstractmethod
 
 import mlflow
+import optuna
 import pandas as pd
 import xgboost as xgb
 from lightgbm import LGBMRegressor
@@ -10,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from zenml import step
 from zenml.client import Client
-import optuna
+
 from src.CustomerSatisfaction.config.exception import CustomException
 from src.CustomerSatisfaction.config.logger import logging
 from src.CustomerSatisfaction.config.modelConfig import ModelNameConfig
@@ -33,6 +34,7 @@ class Model(ABC):
             None
         """
         pass
+
     @abstractmethod
     def optimize(self, trial, x_train, y_train, x_test, y_test):
         """
@@ -44,7 +46,7 @@ class Model(ABC):
             y_train: Target data
             x_test: Testing data
             y_test: Testing target
-        
+
         Returns:
             None
         """
@@ -65,7 +67,7 @@ class LinearRegressionModel(Model):
             error_message = "Error occurred from train method from LinearRegressionModel class"
             logging.error(error_message)
             raise CustomException(e, sys) from e
-    
+
     # For linear regression, there might not be hyperparameter that we want to tune, so we can simply return the score
     def optimize(self, trial, x_train, y_train, x_test, y_test):
         reg = self.train(x_train, y_train)
@@ -87,7 +89,7 @@ class RandomForestModel(Model):
             error_message = "Error occurred from train method from RandomForestModel class"
             logging.error(error_message)
             raise CustomException(e, sys) from e
-        
+
     def optimize(self, trial, x_train, y_train, x_test, y_test):
         params = {
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
@@ -112,7 +114,7 @@ class LightGBMModel(Model):
             error_message = "Error occurred from train method from LightGBMModel class"
             logging.error(error_message)
             raise CustomException(e, sys) from e
-        
+
     def optimize(self, trial, x_train, y_train, x_test, y_test):
         parameters = {
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
@@ -132,7 +134,7 @@ class XGBoostModel(Model):
         reg = xgb.XGBRegressor(**kwargs)
         reg.fit(x_train, y_train)
         return reg
-    
+
     def optimize(self, trial, x_train, y_train, x_test, y_test):
         params = {
             "n_estimators": trial.suggest_int("n_estimators", 1, 200),
@@ -141,6 +143,27 @@ class XGBoostModel(Model):
         }
         reg = self.train(x_train, y_train, **params)
         return reg.score(x_test, y_test)
+
+
+class HyperparameterTuner:
+    """
+    Class for performing hyperparameter tuning. It uses Model strategy to perform tuning.
+    """
+
+    def __init__(self, model, x_train, y_train, x_test, y_test):
+        self.model = model
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_test = x_test
+        self.y_test = y_test
+
+    def optimize(self, n_trials=100):
+        study = optuna.create_study(direction="maximize")
+        optimize_func = self.model.optimize
+        def objective(trial): return optimize_func(
+            trial, self.x_train, self.y_train, self.x_test, self.y_test)
+        study.optimize(objective, n_trials=n_trials)
+        return study.best_trial.params
 
 
 @step(experiment_tracker=experiment_tracker.name)
@@ -177,27 +200,13 @@ def train_model(
             model = LinearRegressionModel()
         else:
             raise ValueError("Model name not supported")
-        return model.train(x_train, y_train)
+
+        tuner = HyperparameterTuner(model, x_train, y_train, x_test, y_test)
+
+        best_params = tuner.optimize() if config.fine_tuning else {}
+
+        return model.train(x_train, y_train, **best_params)
+
     except Exception as e:
-        error_message = "Error occurred from train_model method"
-        logging.error(error_message)
+        logging.error("Error occurred from train_model method")
         raise CustomException(e, sys) from e
-
-class HyperparameterTuner:
-    """
-    Class for performing hyperparameter tuning. It uses Model strategy to perform tuning.
-    """
-
-    def __init__(self, model, x_train, y_train, x_test, y_test):
-        self.model = model
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_test = x_test
-        self.y_test = y_test
-
-    def optimize(self, n_trials=100):
-        study = optuna.create_study(direction="maximize")
-        optimize_func = self.model.optimize
-        objective = lambda trial: optimize_func(trial, self.x_train, self.y_train, self.x_test, self.y_test)
-        study.optimize(objective, n_trials=n_trials)
-        return study.best_trial.params
