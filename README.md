@@ -11,3 +11,8 @@
 ```
 pip install -r requirements.txt
 ```
+
+## 2 - Integrating MLFlow With ZenML
+```
+zenml integration install mlflow -y
+```

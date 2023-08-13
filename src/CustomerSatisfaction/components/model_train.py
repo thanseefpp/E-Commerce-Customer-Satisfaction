@@ -10,7 +10,9 @@ from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from abc import ABC,abstractmethod
-
+import mlflow
+from zenml.client import Client
+experiment_tracker = Client().active_stack.experiment_tracker
 
 class Model(ABC):
     """
@@ -89,7 +91,7 @@ class XGBoostModel(Model):
             logging.error(error_message)
             raise CustomException(e, sys) from e
 
-@step
+@step(experiment_tracker=experiment_tracker.name)
 def train_model(
     x_train: pd.DataFrame,
     x_test: pd.DataFrame,
@@ -110,12 +112,16 @@ def train_model(
         model = None
 
         if config.model_name == "lightgbm":
+            mlflow.lightgbm.autolog()
             model = LightGBMModel()
         elif config.model_name == "randomforest":
+            mlflow.sklearn.autolog()
             model = RandomForestModel()
         elif config.model_name == "xgboost":
+            mlflow.xgboost.autolog()
             model = XGBoostModel()
         elif config.model_name == "linear_regression":
+            mlflow.sklearn.autolog()
             model = LinearRegressionModel()
         else:
             raise ValueError("Model name not supported")
