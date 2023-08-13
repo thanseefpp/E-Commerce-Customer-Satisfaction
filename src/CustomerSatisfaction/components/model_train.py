@@ -1,6 +1,7 @@
 import sys
 from abc import ABC, abstractmethod
-
+import os
+from dataclasses import dataclass
 import mlflow
 import optuna
 import pandas as pd
@@ -11,7 +12,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from zenml import step
 from zenml.client import Client
-
+from src.CustomerSatisfaction.utils.common import save_object
 from src.CustomerSatisfaction.config.exception import CustomException
 from src.CustomerSatisfaction.config.logger import logging
 from src.CustomerSatisfaction.config.modelConfig import ModelNameConfig
@@ -165,6 +166,9 @@ class HyperparameterTuner:
         study.optimize(objective, n_trials=n_trials)
         return study.best_trial.params
 
+@dataclass
+class ModelTrainerConfig:
+    trained_model_file_path = os.path.join("artifacts", 'model.pkl')
 
 @step(experiment_tracker=experiment_tracker.name)
 def train_model(
@@ -185,7 +189,7 @@ def train_model(
     """
     try:
         model = None
-
+        save_model_path = ModelTrainerConfig().trained_model_file_path
         if config.model_name == "lightgbm":
             mlflow.lightgbm.autolog()
             model = LightGBMModel()
@@ -204,8 +208,12 @@ def train_model(
         tuner = HyperparameterTuner(model, x_train, y_train, x_test, y_test)
 
         best_params = tuner.optimize() if config.fine_tuning else {}
-
-        return model.train(x_train, y_train, **best_params)
+        model = model.train(x_train, y_train, **best_params)
+        save_object(
+                file_path=save_model_path,
+                obj=model
+            )
+        return model
 
     except Exception as e:
         logging.error("Error occurred from train_model method")

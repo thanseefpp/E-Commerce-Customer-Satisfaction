@@ -1,13 +1,16 @@
 from zenml.config import DockerSettings
 from zenml.integrations.constants import MLFLOW
-from zenml.pipelines import pipeline
+from zenml import pipeline
+from src.CustomerSatisfaction.components.data_ingestion import ingest_data
+from src.CustomerSatisfaction.components.data_cleaning import clean_data
+from src.CustomerSatisfaction.components.model_evaluation import evaluation
+from src.CustomerSatisfaction.components.model_train import train_model
 
 docker_settings = DockerSettings(required_integrations=[MLFLOW])
 
 
-
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
-def train_pipeline(ingest_data, clean_data, train_model, evaluation):
+def train_pipeline():
     """
     Args:
         ingest_data: DataClass
