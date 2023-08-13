@@ -1,11 +1,25 @@
 from src.CustomerSatisfaction.pipeline.train_pipeline import train_pipeline
-
-# from zenml.client import Client
-
+from src.CustomerSatisfaction.components.data_cleaning import clean_data
+from src.CustomerSatisfaction.components.data_ingestion import ingest_data
+from src.CustomerSatisfaction.components.model_evaluation import evaluation
+from src.CustomerSatisfaction.components.model_train import train_model
+from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 
 if __name__ == "__main__":
-    data_path = "data/olist_customers_dataset.csv"
-    # print(Client().active_stack.experiment_tracker.get_tracking_uri())
-    train_pipeline(data_path)
+    training = train_pipeline(
+        ingest_data(),
+        clean_data(),
+        train_model(),
+        evaluation(),
+    )
 
-# mlflow ui --backend-store-uri "file:/Users/thanseefpp/Library/Application Support/zenml/local_stores/e2b7652e-bb89-46e1-9463-e63dc2b09053/mlruns"
+    training.run()
+    
+    print(
+        "Now run \n "
+        f"    mlflow ui --backend-store-uri '{get_tracking_uri()}'\n"
+        "To inspect your experiment runs within the mlflow UI.\n"
+        "You can find your runs tracked within the `mlflow_example_pipeline`"
+        "experiment. Here you'll also be able to compare the two runs.)"
+    )
+
