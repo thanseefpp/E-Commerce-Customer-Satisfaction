@@ -178,14 +178,14 @@ def continuous_deployment_pipeline(
     x_train, x_test, y_train, y_test = clean_data(df)
     model = train_model(x_train, x_test, y_train, y_test)
     mse, rmse = evaluation(model, x_test, y_test)
-    # if mse > min_accuracy:  
-    deployment_decision = deployment_trigger(accuracy=mse)
-    mlflow_model_deployer_step(
-        model=model,
-        deploy_decision=deployment_decision,
-        workers=workers,
-        timeout=timeout,
-    )
+    if mse > min_accuracy:  
+        deployment_decision = deployment_trigger(accuracy=mse)
+        mlflow_model_deployer_step(
+            model=model,
+            deploy_decision=deployment_decision,
+            workers=workers,
+            timeout=timeout,
+        )
     
     
 @pipeline(enable_cache=False, settings={"docker": docker_settings})
